@@ -348,7 +348,8 @@ pylith::faults::FaultCohesiveKin::createDerivedField(const pylith::topology::Fie
 // Update auxiliary fields at beginning of time step.
 void
 pylith::faults::FaultCohesiveKin::updateAuxiliaryField(pylith::topology::Field* auxiliaryField,
-                                                       const double t) {
+                                                       const PylithReal t,
+                                                       const PylithReal dt) {
     PYLITH_METHOD_BEGIN;
     PYLITH_COMPONENT_DEBUG("updateAuxiliaryField(auxiliaryField="<<auxiliaryField<<", t="<<t<<")");
 
@@ -357,10 +358,10 @@ pylith::faults::FaultCohesiveKin::updateAuxiliaryField(pylith::topology::Field* 
 
     switch (_formulation) {
     case QUASISTATIC:
-        this->_updateSlip(auxiliaryField, t);
+        this->_updateSlip(auxiliaryField, t, dt);
         break;
     case DYNAMIC_IMEX:
-        this->_updateSlipAcceleration(auxiliaryField, t);
+        this->_updateSlipAcceleration(auxiliaryField, t, dt);
         break;
     case DYNAMIC:
         PYLITH_COMPONENT_LOGICERROR("Fault implementation is incompatible with 'dynamic' formulation. Use 'dynamic_imex'.");
@@ -404,9 +405,10 @@ pylith::faults::FaultCohesiveKin::_updateKernelConstants(const PylithReal dt) {
 // Update slip subfield in auxiliary field at beginning of time step.
 void
 pylith::faults::FaultCohesiveKin::_updateSlip(pylith::topology::Field* auxiliaryField,
-                                              const double t) {
+                                              const PylithReal t,
+                                              const PylithReal dt) {
     PYLITH_METHOD_BEGIN;
-    PYLITH_COMPONENT_DEBUG("updateSlip(auxiliaryField="<<auxiliaryField<<", t="<<t<<")");
+    PYLITH_COMPONENT_DEBUG("updateSlip(auxiliaryField="<<auxiliaryField<<", t="<<t<<", dt="<<dt<<")");
 
     assert(auxiliaryField);
     assert(_normalizer);
@@ -418,7 +420,7 @@ pylith::faults::FaultCohesiveKin::_updateSlip(pylith::topology::Field* auxiliary
         err = VecSet(_slipVecRupture, 0.0);PYLITH_CHECK_ERROR(err);
 
         KinSrc* src = r_iter->second;assert(src);
-        src->updateSlip(_slipVecRupture, auxiliaryField, t, _normalizer->getTimeScale());
+        src->updateSlip(_slipVecRupture, auxiliaryField, t, dt, _normalizer->getTimeScale());
         err = VecAYPX(_slipVecTotal, 1.0, _slipVecRupture);
     } // for
 
@@ -454,9 +456,10 @@ pylith::faults::FaultCohesiveKin::_updateSlip(pylith::topology::Field* auxiliary
 // Update slip rate subfield in auxiliary field at beginning of time step.
 void
 pylith::faults::FaultCohesiveKin::_updateSlipRate(pylith::topology::Field* auxiliaryField,
-                                                  const double t) {
+                                                  const PylithReal t,
+                                                  const PylithReal dt) {
     PYLITH_METHOD_BEGIN;
-    PYLITH_COMPONENT_DEBUG("_updateSlipRate(auxiliaryField="<<auxiliaryField<<", t="<<t<<")");
+    PYLITH_COMPONENT_DEBUG("_updateSlipRate(auxiliaryField="<<auxiliaryField<<", t="<<t<<", dt="<<dt<<")");
 
     assert(auxiliaryField);
     assert(_normalizer);
@@ -468,7 +471,7 @@ pylith::faults::FaultCohesiveKin::_updateSlipRate(pylith::topology::Field* auxil
         err = VecSet(_slipVecRupture, 0.0);PYLITH_CHECK_ERROR(err);
 
         KinSrc* src = r_iter->second;assert(src);
-        src->updateSlipRate(_slipVecRupture, auxiliaryField, t, _normalizer->getTimeScale());
+        src->updateSlipRate(_slipVecRupture, auxiliaryField, t, dt, _normalizer->getTimeScale());
         err = VecAYPX(_slipVecTotal, 1.0, _slipVecRupture);
     } // for
 
@@ -504,9 +507,10 @@ pylith::faults::FaultCohesiveKin::_updateSlipRate(pylith::topology::Field* auxil
 // Update slip acceleration subfield in auxiliary field at beginning of time step.
 void
 pylith::faults::FaultCohesiveKin::_updateSlipAcceleration(pylith::topology::Field* auxiliaryField,
-                                                          const double t) {
+                                                          const PylithReal t,
+                                                          const PylithReal dt) {
     PYLITH_METHOD_BEGIN;
-    PYLITH_COMPONENT_DEBUG("_updateSlipAcceleration(auxiliaryField="<<auxiliaryField<<", t="<<t<<")");
+    PYLITH_COMPONENT_DEBUG("_updateSlipAcceleration(auxiliaryField="<<auxiliaryField<<", t="<<t<<", dt="<<dt<<")");
 
     assert(auxiliaryField);
     assert(_normalizer);
@@ -518,7 +522,7 @@ pylith::faults::FaultCohesiveKin::_updateSlipAcceleration(pylith::topology::Fiel
         err = VecSet(_slipVecRupture, 0.0);PYLITH_CHECK_ERROR(err);
 
         KinSrc* src = r_iter->second;assert(src);
-        src->updateSlipAcc(_slipVecRupture, auxiliaryField, t, _normalizer->getTimeScale());
+        src->updateSlipAcc(_slipVecRupture, auxiliaryField, t, dt, _normalizer->getTimeScale());
         err = VecAYPX(_slipVecTotal, 1.0, _slipVecRupture);
     } // for
 
