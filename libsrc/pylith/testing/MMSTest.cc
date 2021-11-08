@@ -59,7 +59,6 @@ pylith::testing::MMSTest::tearDown(void) {
     PYLITH_METHOD_BEGIN;
 
     pythia::journal::debug_t debug(GenericComponent::getName());
-    debug.deactivate(); // DEBUGGING
 
     delete _problem;_problem = NULL;
     delete _mesh;_mesh = NULL;
@@ -245,6 +244,12 @@ pylith::testing::MMSTest::_initialize(void) {
     // Global vectors to use for analytical solution in MMS tests.
     PetscErrorCode err = VecDuplicate(_solution->getGlobalVector(), &_solutionExactVec);CPPUNIT_ASSERT(!err);
     err = VecDuplicate(_solutionExactVec, &_solutionDotExactVec);CPPUNIT_ASSERT(!err);
+
+    pythia::journal::debug_t debug(GenericComponent::getName());
+    if (debug.state()) {
+        const pylith::topology::Mesh& mesh = _solution->getMesh();
+        mesh.view();
+    } // if
 
     PYLITH_METHOD_END;
 } // _initialize

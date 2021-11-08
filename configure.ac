@@ -109,7 +109,7 @@ AC_CHECK_HEADER([mpi.h], [], [AC_MSG_ERROR([header 'mpi.h' not found])])
 
 dnl PETSC
 AC_LANG(C)
-CIT_PATH_PETSC([3.15.3])
+CIT_PATH_PETSC([3.16.0])
 CIT_HEADER_PETSC
 CIT_CHECK_LIB_PETSC
 
@@ -144,7 +144,6 @@ if test "$enable_hdf5" = "yes" ; then
   CIT_HDF5_LIB
   CIT_HDF5_LIB_PARALLEL
 
-  CIT_PYTHON_MODULE([six],[1.0.0])
   CIT_PYTHON_MODULE([h5py],[2.0.0])
 fi
 

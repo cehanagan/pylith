@@ -215,7 +215,6 @@ protected:
 
         _data->spaceDim = 2;
         _data->meshFilename = ":UNKNOWN:"; // Set in child class.
-        _data->boundaryLabel = "boundary";
 
         CPPUNIT_ASSERT(!_data->cs);
         _data->cs = new spatialdata::geocoords::CSCart;CPPUNIT_ASSERT(_data->cs);
@@ -268,19 +267,46 @@ protected:
         };
         _data->faultAuxDiscretizations = const_cast<pylith::topology::Field::Discretization*>(_faultAuxDiscretizations);
 
-        CPPUNIT_ASSERT(_material);
-        _material->setFormulation(pylith::problems::Physics::QUASISTATIC);
-        _material->useBodyForce(false);
-        _material->setDescriptiveLabel("Isotropic Linear Elascitity Plane Strain");
-        _material->setMaterialId(24);
-        _material->setBulkRheology(_data->rheology);
+        // Materials
+        _materials.resize(2);
+        { // xneg
+            pylith::materials::Elasticity* material = new pylith::materials::Elasticity();assert(material);
+            material->setFormulation(pylith::problems::Physics::QUASISTATIC);
+            material->useBodyForce(false);
+            material->setDescriptiveLabel("Isotropic Linear Elascitity Plane Strain");
+            material->setMaterialId(10);
+            material->setBulkRheology(_data->rheology);
+            _materials[0] = material;
+        } // xneg
+        { // xpos
+            pylith::materials::Elasticity* material = new pylith::materials::Elasticity();assert(material);
+            material->setFormulation(pylith::problems::Physics::QUASISTATIC);
+            material->useBodyForce(false);
+            material->setDescriptiveLabel("Isotropic Linear Elascitity Plane Strain");
+            material->setMaterialId(20);
+            material->setBulkRheology(_data->rheology);
+            _materials[1] = material;
+        } // xpos
 
         static const PylithInt constrainedDOF[2] = {0, 1};
         static const PylithInt numConstrained = 2;
-        _bc->setConstrainedDOF(constrainedDOF, numConstrained);
-        _bc->setMarkerLabel("boundary");
-        _bc->setSubfieldName("displacement");
-        _bc->setUserFn(solnkernel_disp);
+        _bcs.resize(2);
+        { // boundary_xpos
+            pylith::bc::DirichletUserFn* bc = new pylith::bc::DirichletUserFn();
+            bc->setConstrainedDOF(constrainedDOF, numConstrained);
+            bc->setMarkerLabel("boundary_xpos");
+            bc->setSubfieldName("displacement");
+            bc->setUserFn(solnkernel_disp);
+            _bcs[0] = bc;
+        } // boundary_xpos
+        { // boundary_xneg
+            pylith::bc::DirichletUserFn* bc = new pylith::bc::DirichletUserFn();
+            bc->setConstrainedDOF(constrainedDOF, numConstrained);
+            bc->setMarkerLabel("boundary_xneg");
+            bc->setSubfieldName("displacement");
+            bc->setUserFn(solnkernel_disp);
+            _bcs[1] = bc;
+        } // boundary_zneg
 
         _fault->setInterfaceId(100);
         _fault->setSurfaceMarkerLabel("fault");
